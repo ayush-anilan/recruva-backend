@@ -1,0 +1,34 @@
+package com.recruva.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.recruva.service.AuthService;
+import com.recruva.web.request.RegisterRequest;
+import com.recruva.web.response.RegisterResponse;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+
+@RestController
+@RequestMapping ("/api/auth")
+@RequiredArgsConstructor 
+public class AuthController {
+
+    private final AuthService authService;
+    
+    @PostMapping ("/register")
+    public ResponseEntity<RegisterResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
+        
+        RegisterResponse response = authService.registerUser(request);
+        return ResponseEntity.ok(response);
+
+    }
+    
+
+}
