@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.recruva.db.entities.User;
 import com.recruva.db.repositories.UserRepository;
 import com.recruva.exception.EmailAlreadyRegisteredException;
+import com.recruva.exception.InvalidCredentialsException;
+import com.recruva.web.request.LoginRequest;
 import com.recruva.web.request.RegisterRequest;
 import com.recruva.web.response.RegisterResponse;
 
@@ -49,5 +51,28 @@ public class AuthService {
                 .email(user.getEmail())
                 .success(true)
                 .build();
+    }
+
+    public String loginUser(LoginRequest request) {
+        // Implementation for user login
+        // This method should validate the user's credentials and return a token or session information
+
+        // Find user by email
+        var userOptional = userRepository.findByEmail(request.getEmail());
+
+        // If user does not exist, throw an exception
+        if (userOptional.isEmpty()) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+        var user = userOptional.get();
+
+        // Check password using passwordEncoder.matches() method
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        }
+        
+        // If login is successful, return a success message or token (for now, just a placeholder)
+
+        return "Login functionality not implemented yet";
     }
 }

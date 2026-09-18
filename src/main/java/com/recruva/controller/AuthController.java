@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recruva.service.AuthService;
+import com.recruva.web.request.LoginRequest;
 import com.recruva.web.request.RegisterRequest;
 import com.recruva.web.response.RegisterResponse;
 
@@ -28,6 +29,12 @@ public class AuthController {
         RegisterResponse response = authService.registerUser(request);
         return ResponseEntity.ok(response);
 
+    }
+
+    @PostMapping ("/login")
+    public ResponseEntity<String> loginUser(@Valid @RequestBody LoginRequest request) {
+        String token = authService.loginUser(request);
+        return ResponseEntity.ok(token);
     }
     
 
