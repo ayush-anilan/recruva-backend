@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor 
 public class AuthService {
 
+    private final JwtService jwtService;
+
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
@@ -73,6 +75,6 @@ public class AuthService {
         
         // If login is successful, return a success message or token (for now, just a placeholder)
 
-        return "Login functionality not implemented yet";
+        return jwtService.generateToken(user);
     }
 }

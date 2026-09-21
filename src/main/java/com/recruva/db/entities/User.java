@@ -1,7 +1,11 @@
 package com.recruva.db.entities;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
+
+import org.springframework.security.core.GrantedAuthority;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,4 +49,8 @@ public class User {
 
     @Column (name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.emptyList();
+    }
 }

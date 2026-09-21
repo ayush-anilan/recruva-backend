@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -36,6 +37,11 @@ public class AuthController {
         String token = authService.loginUser(request);
         return ResponseEntity.ok(token);
     }
-    
+
+    @GetMapping ("/test")
+    public String test()
+    {
+        return "Authentication request successful";
+    }
 
 }
