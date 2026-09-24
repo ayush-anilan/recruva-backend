@@ -36,4 +36,11 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler (UnauthenticatedUserException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthenticatedUserException(UnauthenticatedUserException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
 }
