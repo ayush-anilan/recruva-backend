@@ -6,7 +6,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.recruva.db.entities.OrganizationMember;
 import com.recruva.db.entities.User;
+import com.recruva.db.repositories.OrganizationMemberRepository;
+import com.recruva.exception.ForbiddenException;
 import com.recruva.exception.UnauthenticatedUserException;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 @Service 
 @RequiredArgsConstructor
 public class SecurityService {
+
+    private final OrganizationMemberRepository organizationMemberRepository;
     
     public User getCurrentUser() {
         // Implementation for retrieving the currently authenticated user
@@ -30,5 +35,11 @@ public class SecurityService {
 
     public UUID getCurrentUserId(){
         return getCurrentUser().getId();
+    }
+
+    public OrganizationMember getCurrentUserMembership(UUID organizationId){
+        User currentUser = getCurrentUser();
+        return organizationMemberRepository.findByOrganization_IdAndUser_Id(organizationId, currentUser.getId())
+                .orElseThrow(() -> new ForbiddenException("User is not a member of the organization"));
     }
 }

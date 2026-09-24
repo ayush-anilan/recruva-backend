@@ -43,4 +43,11 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler (ForbiddenException.class)
+    public ResponseEntity<Map<String, String>> handleForbiddenException(ForbiddenException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
 }
