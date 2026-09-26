@@ -1,36 +1,44 @@
 package com.recruva.service;
 
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 
+import com.recruva.db.entities.Job;
 import com.recruva.db.entities.OrganizationMember;
 import com.recruva.enums.Permission;
+import com.recruva.enums.Role;
 import com.recruva.exception.ForbiddenException;
 
-import lombok.RequiredArgsConstructor;
 
 @Service 
-@RequiredArgsConstructor 
 public class AuthorizationService {
+
+    private static final Map<Role, Set<Permission>> ROLE_PERMISSIONS = Map.of(
+        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB),
+        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB),
+        Role.HIRING_MANAGER, Set.of(Permission.VIEW_JOB),
+        Role.INTERVIEWER, Set.of(Permission.VIEW_JOB)
+    );
 
     public void requirePermission(OrganizationMember member, Permission permission){
 
-        switch (member.getRole()){
-            case ORGANIZATION_ADMIN:
-                if (permission == Permission.CREATE_JOB){
-                    return;
-                }
-                break;
-            case RECRUITER:
-                if (permission == Permission.CREATE_JOB){
-                    return;
-                }
-                break;
-            case HIRING_MANAGER:
-            case INTERVIEWER:
-                break;
+        Set<Permission> permissions = ROLE_PERMISSIONS.get(member.getRole());
+
+        if(permissions != null && permissions.contains(permission)){
+            return; // User has the required permission
         }
 
         throw new ForbiddenException("User does not have permission: " + permission);
+    }
+
+    public void requireJobUpdatePermission(OrganizationMember member, Job job){
+        requirePermission(member, Permission.UPDATE_JOB);
+
+        if(member.getRole() == Role.RECRUITER && !job.getCreatedByUser().getId().equals(member.getUser().getId()) ){
+            throw new ForbiddenException("Recruiters can only update jobs they created");
+        }
     }
 
     public String testAuthorizationCreateJob(OrganizationMember member){
