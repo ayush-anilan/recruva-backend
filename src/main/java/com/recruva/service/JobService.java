@@ -14,6 +14,7 @@ import com.recruva.exception.InvalidJobStatusTransitionException;
 import com.recruva.exception.JobNotFoundException;
 import com.recruva.web.request.JobRequest;
 import com.recruva.web.request.JobStatusUpdateRequest;
+import com.recruva.web.response.JobListItemResponse;
 import com.recruva.web.response.JobListResponse;
 import com.recruva.web.response.JobResponse;
 
@@ -92,12 +93,12 @@ public class JobService {
 
         // Fetch jobs associated with the organization from the database
         var jobs = jobRepository.findByOrganization(organization);
-        var jobTitles = jobs.stream().map(Job::getTitle).collect(Collectors.toList());
+        var jobResponses = jobs.stream().map(job -> JobListItemResponse.builder().id(job.getId()).title(job.getTitle()).description(job.getDescription()).location(job.getLocation()).category(job.getCategory()).status(job.getStatus()).postedAt(job.getPostedAt()).createdAt(job.getCreatedAt()).updatedAt(job.getUpdatedAt()).build()).collect(Collectors.toList());
 
         // Return the response with the list of jobs
         return JobListResponse.builder()
                 .message("Jobs retrieved successfully")
-                .jobTitles(jobTitles)
+                .jobs(jobResponses)
                 .success(true)
                 .build();
     }

@@ -9,6 +9,6 @@ import lombok.Data;
 @Builder 
 public class JobListResponse {
     private String message;
-    private List<String> jobTitles;
+    private List<JobListItemResponse> jobs;
     private boolean success;
 }
