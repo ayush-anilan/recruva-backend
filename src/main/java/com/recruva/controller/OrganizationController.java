@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.recruva.service.JobService;
 import com.recruva.service.OrganizationService;
 import com.recruva.web.request.JobRequest;
+import com.recruva.web.request.JobStatusUpdateRequest;
 import com.recruva.web.request.OrganizationRequest;
 import com.recruva.web.response.JobListResponse;
 import com.recruva.web.response.JobResponse;
@@ -56,6 +58,12 @@ public class OrganizationController {
     @PutMapping ("/{organizationId}/jobs/{jobId}")
     public ResponseEntity<JobResponse> updateJob(@PathVariable  UUID organizationId,@PathVariable  UUID jobId,@Valid @RequestBody JobRequest request){
         JobResponse response = jobService.updateJob(organizationId, jobId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping ("/{organizationId}/jobs/{jobId}/status")
+    public ResponseEntity<JobResponse> updateJobStatus(@PathVariable UUID organizationId, @PathVariable UUID jobId, @Valid @RequestBody JobStatusUpdateRequest request){
+        JobResponse response = jobService.updateJobStatus(organizationId, jobId, request);
         return ResponseEntity.ok(response);
     }
 

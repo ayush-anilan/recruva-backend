@@ -10,9 +10,10 @@ import com.recruva.db.entities.Job;
 import com.recruva.db.repositories.JobRepository;
 import com.recruva.enums.JobStatus;
 import com.recruva.enums.Permission;
-import com.recruva.enums.Role;
+import com.recruva.exception.InvalidJobStatusTransitionException;
 import com.recruva.exception.JobNotFoundException;
 import com.recruva.web.request.JobRequest;
+import com.recruva.web.request.JobStatusUpdateRequest;
 import com.recruva.web.response.JobListResponse;
 import com.recruva.web.response.JobResponse;
 
@@ -25,6 +26,22 @@ public class JobService {
     private final SecurityService securityService;
     private final AuthorizationService authorizationService;
     private final JobRepository jobRepository;
+
+    private void validateStatusTransition(JobStatus currentStatus, JobStatus newStatus){
+        if(currentStatus == newStatus){
+            throw new InvalidJobStatusTransitionException("Job is already in " + newStatus + " status");
+        }
+
+        if(currentStatus == JobStatus.DRAFT && (newStatus == JobStatus.PUBLISHED || newStatus == JobStatus.CLOSED)){
+            return; // Valid transition
+        }
+
+        if(currentStatus == JobStatus.PUBLISHED && newStatus == JobStatus.CLOSED){
+            return; // Valid transition
+        }
+
+        throw new InvalidJobStatusTransitionException("Invalid status transition from " + currentStatus + " to " + newStatus);
+    }
 
     public JobResponse createJob(UUID organizationId, JobRequest request) {
 
@@ -109,5 +126,36 @@ public class JobService {
 
         return JobResponse.builder().message("Job updated successfully").jobTitle(job.getTitle()).success(true).build();
 
+    }
+
+    public JobResponse updateJobStatus(UUID organizationId, UUID jobId, JobStatusUpdateRequest request){
+
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        // Get organization entity from the membership
+        var organization = membership.getOrganization();
+
+        // Find job using jobId + membership.organization
+        var job = jobRepository.findByIdAndOrganization(jobId, organization).orElseThrow(() -> new JobNotFoundException("Job not found"));
+
+        // Check role + ownership authorization
+        authorizationService.requireJobStatusPermission(membership, job);
+
+        // validate status transition
+        validateStatusTransition(job.getStatus(), request.getStatus());
+
+        // set postedAt if status is being changed to PUBLISHED
+        if(job.getStatus() == JobStatus.DRAFT && request.getStatus() == JobStatus.PUBLISHED){
+            job.setPostedAt(LocalDateTime.now());
+        }
+
+        // Update status
+        job.setStatus(request.getStatus());
+        job.setUpdatedAt(LocalDateTime.now());
+
+        jobRepository.save(job);
+
+        return JobResponse.builder().message("Job status updated successfully").jobTitle(job.getTitle()).success(true).build();
     }
 }

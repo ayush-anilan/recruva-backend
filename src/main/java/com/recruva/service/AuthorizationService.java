@@ -16,8 +16,8 @@ import com.recruva.exception.ForbiddenException;
 public class AuthorizationService {
 
     private static final Map<Role, Set<Permission>> ROLE_PERMISSIONS = Map.of(
-        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB),
-        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB),
+        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS),
+        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS),
         Role.HIRING_MANAGER, Set.of(Permission.VIEW_JOB),
         Role.INTERVIEWER, Set.of(Permission.VIEW_JOB)
     );
@@ -38,6 +38,14 @@ public class AuthorizationService {
 
         if(member.getRole() == Role.RECRUITER && !job.getCreatedByUser().getId().equals(member.getUser().getId()) ){
             throw new ForbiddenException("Recruiters can only update jobs they created");
+        }
+    }
+
+    public void requireJobStatusPermission(OrganizationMember member, Job job){
+        requirePermission(member, Permission.MANAGE_JOB_STATUS);
+
+        if(member.getRole() == Role.RECRUITER && !job.getCreatedByUser().getId().equals(member.getUser().getId()) ){
+            throw new ForbiddenException("Recruiters can only manage status of jobs they created");
         }
     }
 
