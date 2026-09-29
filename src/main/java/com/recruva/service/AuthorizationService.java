@@ -16,8 +16,8 @@ import com.recruva.exception.ForbiddenException;
 public class AuthorizationService {
 
     private static final Map<Role, Set<Permission>> ROLE_PERMISSIONS = Map.of(
-        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS),
-        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS),
+        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS, Permission.MANAGE_CANDIDATES),
+        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS, Permission.MANAGE_CANDIDATES),
         Role.HIRING_MANAGER, Set.of(Permission.VIEW_JOB),
         Role.INTERVIEWER, Set.of(Permission.VIEW_JOB)
     );
