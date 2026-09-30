@@ -15,6 +15,7 @@ import com.recruva.enums.Permission;
 import com.recruva.exception.CandidateAlreadyExistsException;
 import com.recruva.exception.CandidateNotFoundException;
 import com.recruva.web.request.CandidateRequest;
+import com.recruva.web.request.CandidateUpdateRequest;
 import com.recruva.web.response.CandidateListItemResponse;
 import com.recruva.web.response.CandidateListResponse;
 import com.recruva.web.response.CandidateResponse;
@@ -126,6 +127,35 @@ public class CandidateService {
                 .phoneNumber(candidate.getPhoneNumber())
                 .createdAt(candidate.getCreatedAt())
                 .updatedAt(candidate.getUpdatedAt())
+                .build();
+    }
+
+    public CandidateResponse updateCandidate(UUID organizationId, UUID candidateId, CandidateUpdateRequest request) {
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        // Check permissions for the current user to manage candidates in the organization
+        authorizationService.requirePermission(membership, Permission.MANAGE_CANDIDATES);
+
+        // Fetch candidate by ID
+        Candidate candidate = organizationCandidateRepository.findByCandidate_IdAndOrganization_Id(candidateId, organizationId)
+                .map(OrganizationCandidate::getCandidate)
+                .orElseThrow(() -> new CandidateNotFoundException("Candidate not found in the organization"));
+
+        // Update candidate details
+        candidate.setFirstName(request.getFirstName());
+        candidate.setLastName(request.getLastName());
+        candidate.setEmail(request.getEmail());
+        candidate.setPhoneNumber(request.getPhoneNumber());
+        candidate.setUpdatedAt(LocalDateTime.now());
+
+        // Save updated candidate
+        candidateRepository.save(candidate);
+
+        return CandidateResponse.builder()
+                .message("Candidate updated successfully")
+                .candidateId(candidate.getId().toString())
+                .success(true)
                 .build();
     }
 }
