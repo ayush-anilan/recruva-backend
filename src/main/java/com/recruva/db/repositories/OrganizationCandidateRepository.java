@@ -1,5 +1,6 @@
 package com.recruva.db.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,4 +10,6 @@ import com.recruva.db.entities.OrganizationCandidate;
 
 public interface OrganizationCandidateRepository extends JpaRepository<OrganizationCandidate, UUID> {
     Optional<OrganizationCandidate> findByCandidate_IdAndOrganization_Id(UUID candidateId, UUID organizationId);
+
+    List<OrganizationCandidate> findByOrganizationId(UUID organizationId);
 }

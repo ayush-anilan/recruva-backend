@@ -1,7 +1,9 @@
 package com.recruva.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import com.recruva.db.repositories.OrganizationCandidateRepository;
 import com.recruva.enums.Permission;
 import com.recruva.exception.CandidateAlreadyExistsException;
 import com.recruva.web.request.CandidateRequest;
+import com.recruva.web.response.CandidateListItemResponse;
+import com.recruva.web.response.CandidateListResponse;
 import com.recruva.web.response.CandidateResponse;
 
 import jakarta.transaction.Transactional;
@@ -71,5 +75,33 @@ public class CandidateService {
                 .success(true)
                 .build();
     
+    }
+
+    public CandidateListResponse getCandidatesByOrganizationId(UUID organizationId) {
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        // Check permissions for the current user to view candidates in the organization
+        authorizationService.requirePermission(membership, Permission.VIEW_CANDIDATES);
+
+        // Fetch candidates associated with the organization
+        List<Candidate> candidates = organizationCandidateRepository.findByOrganizationId(organizationId)
+                .stream().map(OrganizationCandidate::getCandidate).toList();
+
+        List<CandidateListItemResponse> candidateResponses = candidates.stream().map( candidate -> CandidateListItemResponse.builder()
+                .id(candidate.getId())
+                .firstName(candidate.getFirstName())
+                .lastName(candidate.getLastName())
+                .email(candidate.getEmail())
+                .phoneNumber(candidate.getPhoneNumber())
+                .createdAt(candidate.getCreatedAt())
+                .updatedAt(candidate.getUpdatedAt())
+                .build()).collect(Collectors.toList());
+
+        return CandidateListResponse.builder()
+                .candidates(candidateResponses)
+                .message("Candidates retrieved successfully")
+                .success(true)
+                .build();
     }
 }
