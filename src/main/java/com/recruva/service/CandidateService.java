@@ -13,6 +13,7 @@ import com.recruva.db.repositories.CandidateRepository;
 import com.recruva.db.repositories.OrganizationCandidateRepository;
 import com.recruva.enums.Permission;
 import com.recruva.exception.CandidateAlreadyExistsException;
+import com.recruva.exception.CandidateNotFoundException;
 import com.recruva.web.request.CandidateRequest;
 import com.recruva.web.response.CandidateListItemResponse;
 import com.recruva.web.response.CandidateListResponse;
@@ -102,6 +103,29 @@ public class CandidateService {
                 .candidates(candidateResponses)
                 .message("Candidates retrieved successfully")
                 .success(true)
+                .build();
+    }
+
+    public CandidateListItemResponse getCandidateById(UUID organizationId, UUID candidateId) {
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        // Check permissions for the current user to view candidates in the organization
+        authorizationService.requirePermission(membership, Permission.VIEW_CANDIDATES);
+
+        // Fetch candidate by ID
+        Candidate candidate = organizationCandidateRepository.findByCandidate_IdAndOrganization_Id(candidateId, organizationId)
+                .map(OrganizationCandidate::getCandidate)
+                .orElseThrow(() -> new CandidateNotFoundException("Candidate not found in the organization"));
+
+        return CandidateListItemResponse.builder()
+                .id(candidate.getId())
+                .firstName(candidate.getFirstName())
+                .lastName(candidate.getLastName())
+                .email(candidate.getEmail())
+                .phoneNumber(candidate.getPhoneNumber())
+                .createdAt(candidate.getCreatedAt())
+                .updatedAt(candidate.getUpdatedAt())
                 .build();
     }
 }

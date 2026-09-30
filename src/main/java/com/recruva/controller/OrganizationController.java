@@ -21,6 +21,7 @@ import com.recruva.web.request.CandidateRequest;
 import com.recruva.web.request.JobRequest;
 import com.recruva.web.request.JobStatusUpdateRequest;
 import com.recruva.web.request.OrganizationRequest;
+import com.recruva.web.response.CandidateListItemResponse;
 import com.recruva.web.response.CandidateListResponse;
 import com.recruva.web.response.CandidateResponse;
 import com.recruva.web.response.JobListResponse;
@@ -81,6 +82,12 @@ public class OrganizationController {
     @GetMapping ("/{organizationId}/candidates")
     public ResponseEntity<CandidateListResponse> getCandidatesByOrganizationId(@PathVariable UUID organizationId){
         CandidateListResponse response = candidateService.getCandidatesByOrganizationId(organizationId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping ("/{organizationId}/candidates/{candidateId}")
+    public ResponseEntity<CandidateListItemResponse> getCandidateById(@PathVariable UUID organizationId, @PathVariable UUID candidateId){
+        CandidateListItemResponse response = candidateService.getCandidateById(organizationId, candidateId);
         return ResponseEntity.ok(response);
     }
 
