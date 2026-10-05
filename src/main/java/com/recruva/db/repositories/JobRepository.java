@@ -13,6 +13,8 @@ import com.recruva.enums.JobStatus;
 public interface JobRepository extends JpaRepository <Job, UUID> {
     Optional <Job> findByIdAndOrganization(UUID id, Organization organization);
 
+    Optional <Job> findByOrganizationId(UUID organizationId);
+
     Optional <Job> findByIdAndStatus(UUID id, JobStatus status);
 
     List<Job> findByOrganization(Organization organization);

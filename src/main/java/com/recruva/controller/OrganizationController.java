@@ -14,14 +14,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.recruva.service.ApplicationService;
 import com.recruva.service.CandidateService;
 import com.recruva.service.JobService;
 import com.recruva.service.OrganizationService;
+import com.recruva.web.request.ApplicationRequest;
 import com.recruva.web.request.CandidateRequest;
 import com.recruva.web.request.CandidateUpdateRequest;
 import com.recruva.web.request.JobRequest;
 import com.recruva.web.request.JobStatusUpdateRequest;
 import com.recruva.web.request.OrganizationRequest;
+import com.recruva.web.response.ApplicationListItemResponse;
+import com.recruva.web.response.ApplicationListResponse;
+import com.recruva.web.response.ApplicationResponse;
 import com.recruva.web.response.CandidateListItemResponse;
 import com.recruva.web.response.CandidateListResponse;
 import com.recruva.web.response.CandidateResponse;
@@ -41,6 +46,7 @@ public class OrganizationController {
     private final OrganizationService organizationService;
     private final JobService jobService;
     private final CandidateService candidateService;
+    private final ApplicationService applicationService;
     
     @PostMapping 
     public ResponseEntity<OrganizationResponse> createOrganization(@Valid  @RequestBody OrganizationRequest request) {
@@ -95,6 +101,25 @@ public class OrganizationController {
     @PutMapping ("/{organizationId}/candidates/{candidateId}")
     public ResponseEntity<CandidateResponse> updateCandidate(@PathVariable UUID organizationId, @PathVariable UUID candidateId, @Valid @RequestBody CandidateUpdateRequest request){
         CandidateResponse response = candidateService.updateCandidate(organizationId, candidateId, request);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping ("/{organizationId}/applications")
+    public ResponseEntity<ApplicationResponse> createApplication(@PathVariable UUID organizationId, @Valid @RequestBody ApplicationRequest request){
+        ApplicationResponse response = applicationService.createApplication(organizationId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping ("/{organizationId}/applications")
+    public ResponseEntity<ApplicationListResponse> getApplicationsByOrganizationId(@PathVariable UUID organizationId){
+        ApplicationListResponse response = applicationService.getApplicationsByJobOrganizationId(organizationId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping ("/{organizationId}/applications/{applicationId}")
+    public ResponseEntity<ApplicationListItemResponse> getApplicationsByApplicationId(@PathVariable UUID organizationId, @PathVariable UUID applicationId){
+        ApplicationListItemResponse response = applicationService.getApplicationsByApplicationId(organizationId, applicationId);
         return ResponseEntity.ok(response);
     }
 

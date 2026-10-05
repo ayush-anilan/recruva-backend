@@ -78,4 +78,25 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler (ApplicationAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleApplicationAlreadyExistsException(ApplicationAlreadyExistsException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler (JobNotAcceptingApplicationsException.class)
+    public ResponseEntity<Map<String, String>> handleJobNotAcceptingApplicationsException(JobNotAcceptingApplicationsException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler (ApplicationNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleApplicationNotFoundException(ApplicationNotFoundException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
 }

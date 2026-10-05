@@ -16,10 +16,10 @@ import com.recruva.exception.ForbiddenException;
 public class AuthorizationService {
 
     private static final Map<Role, Set<Permission>> ROLE_PERMISSIONS = Map.of(
-        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS, Permission.MANAGE_CANDIDATES, Permission.VIEW_CANDIDATES),
-        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS, Permission.MANAGE_CANDIDATES, Permission.VIEW_CANDIDATES),
-        Role.HIRING_MANAGER, Set.of(Permission.VIEW_JOB, Permission.VIEW_CANDIDATES),
-        Role.INTERVIEWER, Set.of(Permission.VIEW_JOB)
+        Role.ORGANIZATION_ADMIN, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS, Permission.MANAGE_CANDIDATES, Permission.VIEW_CANDIDATES, Permission.MANAGE_APPLICATIONS, Permission.VIEW_APPLICATIONS),
+        Role.RECRUITER, Set.of(Permission.CREATE_JOB, Permission.VIEW_JOB, Permission.UPDATE_JOB, Permission.MANAGE_JOB_STATUS, Permission.MANAGE_CANDIDATES, Permission.VIEW_CANDIDATES, Permission.MANAGE_APPLICATIONS, Permission.VIEW_APPLICATIONS),
+        Role.HIRING_MANAGER, Set.of(Permission.VIEW_JOB, Permission.VIEW_CANDIDATES, Permission.MANAGE_APPLICATIONS, Permission.VIEW_APPLICATIONS),
+        Role.INTERVIEWER, Set.of(Permission.VIEW_JOB, Permission.MANAGE_APPLICATIONS, Permission.VIEW_APPLICATIONS)
     );
 
     public void requirePermission(OrganizationMember member, Permission permission){
