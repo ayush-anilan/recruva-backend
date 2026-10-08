@@ -99,4 +99,11 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler (InvalidApplicationStatusTransitionException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidApplicationStatusTransitionException(InvalidApplicationStatusTransitionException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }

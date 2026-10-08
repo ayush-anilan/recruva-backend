@@ -20,6 +20,7 @@ import com.recruva.exception.CandidateNotFoundException;
 import com.recruva.exception.JobNotAcceptingApplicationsException;
 import com.recruva.exception.JobNotFoundException;
 import com.recruva.web.request.ApplicationRequest;
+import com.recruva.web.request.ApplicationStatusUpdateRequest;
 import com.recruva.web.response.ApplicationListItemResponse;
 import com.recruva.web.response.ApplicationListResponse;
 import com.recruva.web.response.ApplicationResponse;
@@ -28,22 +29,23 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor 
-@Transactional 
+@RequiredArgsConstructor
+@Transactional
 public class ApplicationService {
-    
+
     private final SecurityService securityService;
     private final AuthorizationService authorizationService;
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final OrganizationCandidateRepository organizationCandidateRepository;
 
-    public ApplicationResponse createApplication(UUID organizationId, ApplicationRequest request){
+    public ApplicationResponse createApplication(UUID organizationId, ApplicationRequest request) {
 
         // Get membership of the current user in the organization
         var membership = securityService.getCurrentUserMembership(organizationId);
 
-        // Check permissions for the current user to create an application in the organization
+        // Check permissions for the current user to create an application in the
+        // organization
         authorizationService.requirePermission(membership, Permission.MANAGE_APPLICATIONS);
 
         // Check if the job exists and belongs to the organization
@@ -51,18 +53,20 @@ public class ApplicationService {
                 .orElseThrow(() -> new JobNotFoundException("Job not found in the organization"));
 
         // Check if the job is published or not
-        if(job.getStatus() != JobStatus.PUBLISHED){
+        if (job.getStatus() != JobStatus.PUBLISHED) {
             throw new JobNotAcceptingApplicationsException("Applications can only be submitted for published jobs");
         }
 
         // Check if the candidate exists and belongs to the organization
-        var organizationCandidate = organizationCandidateRepository.findByCandidate_IdAndOrganization_Id(request.getCandidateId(), organizationId)
+        var organizationCandidate = organizationCandidateRepository
+                .findByCandidate_IdAndOrganization_Id(request.getCandidateId(), organizationId)
                 .orElseThrow(() -> new CandidateNotFoundException("Candidate does not belong to the organization"));
-        
+
         // Already applied check
-        boolean existingApplication = applicationRepository.existsByOrganizationCandidate_IdAndJob_Id(organizationCandidate.getId(), job.getId());
-        
-        if(existingApplication){
+        boolean existingApplication = applicationRepository
+                .existsByOrganizationCandidate_IdAndJob_Id(organizationCandidate.getId(), job.getId());
+
+        if (existingApplication) {
             throw new ApplicationAlreadyExistsException("Candidate has already applied for this job");
         }
 
@@ -91,7 +95,8 @@ public class ApplicationService {
         // Get membership of the current user in the organization
         var membership = securityService.getCurrentUserMembership(organizationId);
 
-        // Check permissions for the current user to view applications in the organization
+        // Check permissions for the current user to view applications in the
+        // organization
         authorizationService.requirePermission(membership, Permission.VIEW_APPLICATIONS);
 
         List<Application> applications = applicationRepository.findByJob_OrganizationId(organizationId);
@@ -100,24 +105,23 @@ public class ApplicationService {
                 .map(application -> {
 
                     var candidate = application.getOrganizationCandidate().getCandidate();
-                    
+
                     var job = application.getJob();
 
-                return ApplicationListItemResponse.builder()
-                        .applicationId(application.getId())
-                        .candidateId(candidate.getId())
-                        .candidateName(candidate.getFirstName() + " " + candidate.getLastName())
-                        .candidateEmail(candidate.getEmail())
-                        .jobId(job.getId())
-                        .jobTitle(job.getTitle())
-                        .status(application.getStatus())
-                        .appliedAt(application.getAppliedAt())
-                        .createdAt(application.getCreatedAt())
-                        .updatedAt(application.getUpdatedAt())
-                        .build();
-                    }
-                ).collect(Collectors.toList());
-                        
+                    return ApplicationListItemResponse.builder()
+                            .applicationId(application.getId())
+                            .candidateId(candidate.getId())
+                            .candidateName(candidate.getFirstName() + " " + candidate.getLastName())
+                            .candidateEmail(candidate.getEmail())
+                            .jobId(job.getId())
+                            .jobTitle(job.getTitle())
+                            .status(application.getStatus())
+                            .appliedAt(application.getAppliedAt())
+                            .createdAt(application.getCreatedAt())
+                            .updatedAt(application.getUpdatedAt())
+                            .build();
+                }).collect(Collectors.toList());
+
         return ApplicationListResponse.builder()
                 .applications(applicationResponses)
                 .message("Applications retrieved successfully")
@@ -153,6 +157,29 @@ public class ApplicationService {
                 .appliedAt(application.getAppliedAt())
                 .createdAt(application.getCreatedAt())
                 .updatedAt(application.getUpdatedAt())
+                .build();
+    }
+
+    public ApplicationResponse updateApplicationStatus(UUID organizationId, UUID applicationId,
+            ApplicationStatusUpdateRequest request) {
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        var application = applicationRepository.findByIdAndJob_OrganizationId(applicationId, organizationId)
+                .orElseThrow(() -> new ApplicationNotFoundException("Application not found in the organization"));
+
+        // Check if the user has permission to change the application status
+        authorizationService.requireApplicationStatusPermission(membership, application, request.getStatus());
+
+        application.setStatus(request.getStatus());
+        application.setUpdatedAt(LocalDateTime.now());
+
+        applicationRepository.save(application);
+
+        return ApplicationResponse.builder()
+                .message("Application status updated successfully")
+                .applicationId(application.getId())
+                .success(true)
                 .build();
     }
 }

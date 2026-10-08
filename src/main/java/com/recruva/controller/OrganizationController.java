@@ -19,6 +19,7 @@ import com.recruva.service.CandidateService;
 import com.recruva.service.JobService;
 import com.recruva.service.OrganizationService;
 import com.recruva.web.request.ApplicationRequest;
+import com.recruva.web.request.ApplicationStatusUpdateRequest;
 import com.recruva.web.request.CandidateRequest;
 import com.recruva.web.request.CandidateUpdateRequest;
 import com.recruva.web.request.JobRequest;
@@ -120,6 +121,12 @@ public class OrganizationController {
     @GetMapping ("/{organizationId}/applications/{applicationId}")
     public ResponseEntity<ApplicationListItemResponse> getApplicationsByApplicationId(@PathVariable UUID organizationId, @PathVariable UUID applicationId){
         ApplicationListItemResponse response = applicationService.getApplicationsByApplicationId(organizationId, applicationId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping ("/{organizationId}/applications/{applicationId}/status")
+    public ResponseEntity<ApplicationResponse> updateApplicationStatus(@PathVariable UUID organizationId, @PathVariable UUID applicationId, @Valid @RequestBody ApplicationStatusUpdateRequest request){
+        ApplicationResponse response = applicationService.updateApplicationStatus(organizationId, applicationId, request);
         return ResponseEntity.ok(response);
     }
 
