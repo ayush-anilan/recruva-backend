@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.recruva.db.entities.Application;
+import com.recruva.db.entities.ApplicationStatusHistory;
 import com.recruva.db.repositories.ApplicationRepository;
+import com.recruva.db.repositories.ApplicationStatusHistoryRepository;
 import com.recruva.db.repositories.JobRepository;
 import com.recruva.db.repositories.OrganizationCandidateRepository;
 import com.recruva.enums.ApplicationStatus;
@@ -24,6 +26,8 @@ import com.recruva.web.request.ApplicationStatusUpdateRequest;
 import com.recruva.web.response.ApplicationListItemResponse;
 import com.recruva.web.response.ApplicationListResponse;
 import com.recruva.web.response.ApplicationResponse;
+import com.recruva.web.response.ApplicationStatusHistoryItemResponse;
+import com.recruva.web.response.ApplicationStatusHistoryResponse;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +42,7 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final OrganizationCandidateRepository organizationCandidateRepository;
+    private final ApplicationStatusHistoryRepository applicationStatusHistoryRepository;
 
     public ApplicationResponse createApplication(UUID organizationId, ApplicationRequest request) {
 
@@ -83,6 +88,17 @@ public class ApplicationService {
         application.setUpdatedAt(now);
 
         applicationRepository.save(application);
+
+        var history = new ApplicationStatusHistory();
+
+        history.setApplication(application);
+        history.setOrganization(membership.getOrganization());
+        history.setPreviousStatus(null);
+        history.setNewStatus(ApplicationStatus.APPLIED);
+        history.setChangedByUser(membership.getUser());
+        history.setChangedAt(now);
+
+        applicationStatusHistoryRepository.save(history);
 
         return ApplicationResponse.builder()
                 .message("Application created successfully")
@@ -171,6 +187,22 @@ public class ApplicationService {
         // Check if the user has permission to change the application status
         authorizationService.requireApplicationStatusPermission(membership, application, request.getStatus());
 
+
+        // Set history for the application status change
+        ApplicationStatus previousStatus = application.getStatus();
+        ApplicationStatus newStatus = request.getStatus();
+
+        var history = new ApplicationStatusHistory();
+
+        history.setApplication(application);
+        history.setOrganization(membership.getOrganization());
+        history.setPreviousStatus(previousStatus);
+        history.setNewStatus(newStatus);
+        history.setChangedByUser(membership.getUser());
+        history.setChangedAt(LocalDateTime.now());
+
+        applicationStatusHistoryRepository.save(history);
+
         application.setStatus(request.getStatus());
         application.setUpdatedAt(LocalDateTime.now());
 
@@ -179,6 +211,37 @@ public class ApplicationService {
         return ApplicationResponse.builder()
                 .message("Application status updated successfully")
                 .applicationId(application.getId())
+                .success(true)
+                .build();
+    }
+
+    public ApplicationStatusHistoryResponse getApplicationStatusHistory(UUID organizationId, UUID applicationId) {
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        // Check permissions for the current user to view applications in the
+        // organization
+        authorizationService.requirePermission(membership, Permission.VIEW_APPLICATIONS);
+
+        var application = applicationRepository.findByIdAndJob_OrganizationId(applicationId, organizationId)
+                .orElseThrow(() -> new ApplicationNotFoundException("Application not found in the organization"));
+
+        List<ApplicationStatusHistory> historyList = applicationStatusHistoryRepository
+                .findByApplication_IdAndOrganization_IdOrderByChangedAtDesc(application.getId(), organizationId);
+
+        List<ApplicationStatusHistoryItemResponse> historyResponses = historyList.stream()
+                .map(history -> ApplicationStatusHistoryItemResponse.builder()
+                        .id(history.getId())
+                        .previousStatus(history.getPreviousStatus())
+                        .newStatus(history.getNewStatus())
+                        .changedByUserId(history.getChangedByUser().getId())
+                        .changedAt(history.getChangedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        return ApplicationStatusHistoryResponse.builder()
+                .history(historyResponses)
+                .message("Application status history retrieved successfully")
                 .success(true)
                 .build();
     }
