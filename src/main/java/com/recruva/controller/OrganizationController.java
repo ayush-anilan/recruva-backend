@@ -2,6 +2,7 @@ package com.recruva.controller;
 
 import com.recruva.service.SecurityService;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import com.recruva.web.response.CandidateListResponse;
 import com.recruva.web.response.CandidateResponse;
 import com.recruva.web.response.JobListResponse;
 import com.recruva.web.response.JobResponse;
+import com.recruva.web.response.OrganizationListItemResponse;
 import com.recruva.web.response.OrganizationResponse;
 
 import jakarta.validation.Valid;
@@ -55,6 +57,14 @@ public class OrganizationController {
         // Implementation for creating an organization
         // This method should handle the logic for creating an organization and associating it with the current user
         OrganizationResponse response = organizationService.createOrganization(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping 
+    public ResponseEntity<List<OrganizationListItemResponse>> getOrganizationsForCurrentUser() {
+        // Implementation for retrieving organizations for the current user
+        // This method should handle the logic for fetching organizations associated with the current user
+        List<OrganizationListItemResponse> response = organizationService.getMyOrganizations();
         return ResponseEntity.ok(response);
     }
 
