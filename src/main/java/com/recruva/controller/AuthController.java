@@ -4,11 +4,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recruva.db.entities.OrganizationMember;
+import com.recruva.db.entities.User;
 import com.recruva.service.AuthService;
 import com.recruva.service.AuthorizationService;
 import com.recruva.service.SecurityService;
 import com.recruva.web.request.LoginRequest;
 import com.recruva.web.request.RegisterRequest;
+import com.recruva.web.response.CurrentUserResponse;
 import com.recruva.web.response.RegisterResponse;
 
 import jakarta.validation.Valid;
@@ -57,6 +59,21 @@ public class AuthController {
         OrganizationMember member = securityService.getCurrentUserMembership(organizationId);
 
         return authorizationService.testAuthorizationCreateJob(member);
+    }
+
+    @GetMapping ("/me")
+    public ResponseEntity<CurrentUserResponse> getCurrentUser() {
+        
+        User user = securityService.getCurrentUser();
+        
+        CurrentUserResponse response = new CurrentUserResponse(
+            user.getId(),
+            user.getFirstName(),
+            user.getLastName(),
+            user.getEmail()
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 }
