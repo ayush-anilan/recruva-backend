@@ -33,6 +33,7 @@ import com.recruva.web.response.ApplicationStatusHistoryResponse;
 import com.recruva.web.response.CandidateListItemResponse;
 import com.recruva.web.response.CandidateListResponse;
 import com.recruva.web.response.CandidateResponse;
+import com.recruva.web.response.JobListItemResponse;
 import com.recruva.web.response.JobListResponse;
 import com.recruva.web.response.JobResponse;
 import com.recruva.web.response.OrganizationListItemResponse;
@@ -65,6 +66,12 @@ public class OrganizationController {
         // Implementation for retrieving organizations for the current user
         // This method should handle the logic for fetching organizations associated with the current user
         List<OrganizationListItemResponse> response = organizationService.getMyOrganizations();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping ("/{organizationId}/jobs/{jobId}")
+    public ResponseEntity<JobListItemResponse> getJobById(@PathVariable UUID organizationId, @PathVariable UUID jobId){
+        JobListItemResponse response = jobService.getJobById(organizationId, jobId);
         return ResponseEntity.ok(response);
     }
 

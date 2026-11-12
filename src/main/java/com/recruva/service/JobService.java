@@ -44,6 +44,31 @@ public class JobService {
         throw new InvalidJobStatusTransitionException("Invalid status transition from " + currentStatus + " to " + newStatus);
     }
 
+    public JobListItemResponse getJobById(UUID organizationId, UUID jobId){
+        // Get membership of the current user in the organization
+        var membership = securityService.getCurrentUserMembership(organizationId);
+
+        // Check permissions for the current user to view the job
+        authorizationService.requirePermission(membership, Permission.VIEW_JOB);
+
+        // Fetch the job from the database
+        var job = jobRepository.findByIdAndOrganization(jobId, membership.getOrganization())
+                .orElseThrow(() -> new JobNotFoundException("Job not found"));
+
+        // Return the response
+        return JobListItemResponse.builder()
+                .id(job.getId())
+                .title(job.getTitle())
+                .description(job.getDescription())
+                .category(job.getCategory())
+                .location(job.getLocation())
+                .status(job.getStatus())
+                .postedAt(job.getPostedAt())
+                .createdAt(job.getCreatedAt())
+                .updatedAt(job.getUpdatedAt())
+                .build();
+    }
+
     public JobResponse createJob(UUID organizationId, JobRequest request) {
 
         // Get membership of the current user in the organization
