@@ -9,6 +9,7 @@ import com.recruva.db.entities.Application;
 import com.recruva.db.entities.Job;
 import com.recruva.db.entities.OrganizationMember;
 import com.recruva.enums.ApplicationStatus;
+import com.recruva.enums.JobStatus;
 import com.recruva.enums.Permission;
 import com.recruva.enums.Role;
 import com.recruva.exception.ForbiddenException;
@@ -38,6 +39,11 @@ public class AuthorizationService {
 
     public void requireJobUpdatePermission(OrganizationMember member, Job job){
         requirePermission(member, Permission.UPDATE_JOB);
+
+        //Closed jobs cannot be updated by anyone
+        if(job.getStatus() == JobStatus.CLOSED){
+            throw new ForbiddenException("Closed jobs cannot be updated");
+        }
 
         if(member.getRole() == Role.RECRUITER && !job.getCreatedByUser().getId().equals(member.getUser().getId()) ){
             throw new ForbiddenException("Recruiters can only update jobs they created");
